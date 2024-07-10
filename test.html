@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>แผนที่มหาวิทยาลัย</title>
+    <style>
+        /* กำหนดขนาดของแผนที่ */
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        #searchContainer {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        let map;
+        let apLocations = [];
+        let studentData = [];
+
+        function initMap() {
+            // กำหนดตำแหน่งศูนย์กลางของมหาวิทยาลัย
+            var university = { lat: 20.995, lng: 99.883 };
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 16,
+                center: university
+            });
+        }
+
+        function loadCSVData() {
+            Papa.parse('Cleaned_Project.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    studentData = results.data;
+                    // คุณสามารถเพิ่มโค้ดที่เกี่ยวข้องกับการดึงข้อมูล AP ที่นี่
+                }
+            });
+        }
+
+        function searchStudent(studentID) {
+            let ap = studentData.find(student => student.student_id === studentID);
+            if (ap) {
+                let position = { lat: parseFloat(ap.lat), lng: parseFloat(ap.lng) };
+                map.setCenter(position);
+                new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: ap.oid
+                });
+            } else {
+                alert("ไม่พบรหัสนักศึกษานี้");
+            }
+        }
+
+        window.onload = function() {
+            initMap();
+            loadCSVData();
+        }
+    </script>
+</head>
+<body>
+    <div id="searchContainer">
+        <input type="text" id="studentID" placeholder="กรอกรหัสนักศึกษา">
+        <button onclick="searchStudent(document.getElementById('studentID').value)">ค้นหา</button>
+    </div>
+    <div id="map">
+        
+    </div>
+</body>
+</html>

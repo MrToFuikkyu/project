@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>แผนที่มหาวิทยาลัย</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #header {
+            background-color: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+        #searchContainer {
+            width: 60%;
+            margin: 0 auto;
+            padding: 10px;
+            background-color: #dcdcdc;
+            border-radius: 25px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #studentID {
+            width: 80%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        #searchButton {
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #mapContainer {
+            height: calc(100vh - 70px);
+            position: relative;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div id="searchContainer">
+            <input type="text" id="studentID" placeholder="กรอกรหัสนักศึกษา">
+            <button id="searchButton" onclick="searchStudent(document.getElementById('studentID').value)">ค้นหา</button>
+        </div>
+    </div>
+    <div id="mapContainer">
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        let map;
+        let studentData = [];
+
+        // Initialize the map
+        function initMap() {
+            // กำหนดตำแหน่งศูนย์กลางของมหาวิทยาลัย
+            map = L.map('map').setView([20.044979181051033, 99.89433296949139], 20);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        // Load CSV data
+        function loadCSVData() {
+            Papa.parse('/path/to/your/file.csv', {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    studentData = results.data;
+                }
+            });
+        }
+
+        // Search for student and highlight their AP location
+        function searchStudent(studentID) {
+            let ap = studentData.find(student => student.student_id === studentID);
+            if (ap) {
+                let position = [parseFloat(ap.lat), parseFloat(ap.lng)];
+                map.setView(position, 18);
+                L.marker(position).addTo(map).bindPopup(`Student ID: ${studentID}<br>AP: ${ap.oid}`).openPopup();
+            } else {
+                alert("ไม่พบรหัสนักศึกษานี้");
+            }
+        }
+
+        window.onload = function() {
+            initMap();
+            loadCSVData();
+        }
+    </script>
+</body>
+</html>
